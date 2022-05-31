@@ -5,7 +5,7 @@ class Token(object):
         self.position = position
         self.value = value
     
-    def kind(self):
+    def type(self):
         return self.type
     
     def position(self):
@@ -15,7 +15,7 @@ class Token(object):
         return self.value
 
 class Lexer:
-    KEYWORDS = frozenset(['and', 'or', 'not', 'else', 'if', 'elif'])
+    KEYWORDS = frozenset(['and', 'or', 'not', 'else', 'if', 'elif', 'print'])
     
     def __init__(self, code):
         self.text = code
@@ -41,8 +41,8 @@ class Lexer:
                     currentChar = self.next_char()
                     if currentChar == 'EOF':
                         break 
-                self.index += 1
-                self.pos += 1 
+                self.index -= 1
+                self.pos -= 1
                 if words not in Lexer.KEYWORDS:
                     self.token = Token('id', self.line, self.pos - len(words), words)
                 else: 
@@ -82,11 +82,8 @@ class Lexer:
             
             case '=':
                 currentChar = self.next_char()
-                str_len = 1 
-                print("Here")
-                print(currentChar)
+                str_len = 1
                 if currentChar == '=':
-                    print('Go here')
                     while currentChar != ' ': 
                         str_len += 1  
                         currentChar = self.next_char()
@@ -97,7 +94,6 @@ class Lexer:
                         self.token = Token('==', self.line, self.pos - 2, "==")
                 
                 else: 
-                    print("Here")
                     self.index -= 1
                     self.pos -= 1
                     self.token = Token('=', self.line, self.pos - 1, '=')
@@ -121,21 +117,24 @@ class Lexer:
                     self.token = Token('<', self.line, self.pos - 1, '<')
             
             case '\n':
+                #self.pos = 0
+                self.token = Token('Newline', self.line, self.pos, '\n')
                 self.line += 1
                 self.pos = 0
-                self.token = Token('Newline', self.line, self.pos, '\n')
-                return self.next()
+                #return self.next()
             
             case ':':
                 currentChar = self.next_char()
                 if currentChar == '\n':
                     self.token = Token('Statement', self.line, self.pos - 1, ':')
-            
-            case ' ':
-                return self.next()
-                        
+                    self.line += 1
+                                            
             case 'EOF':
                 self.token = Token('EOF', self.line, self.pos, 'EOF')
+                
+            case currentChar if currentChar.isspace():
+                self.token = Token('Space', self.line, self.pos, 'Space')
+                self.pos += 1
             
             case '!':
                 currentChar = self.next_char()
